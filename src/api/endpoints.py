@@ -12,4 +12,4 @@ async def health() -> dict:
 
 @router.post("/ask", response_model=RAGResponse)
 async def ask(req: AskRequest) -> RAGResponse:
-    ...
+    pass
