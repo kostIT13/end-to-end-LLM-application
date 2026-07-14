@@ -11,3 +11,5 @@ logger.add(
     level=settings.log_level, 
 )
 logger.add("logs/app.log", rotation="10 MB", retention="7 days", level=settings.log_level)
+
+
