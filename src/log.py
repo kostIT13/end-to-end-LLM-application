@@ -1,6 +1,6 @@
 from loguru import logger
 import sys 
-from config import settings
+from src.config import settings
 
 
 logger.remove()
