@@ -1,6 +1,6 @@
 from src.config import settings
 from openai import AsyncOpenAI, APITimeoutError, RateLimitError
-from typing import TypeVar
+from typing import TypeVar, Type
 from pydantic import BaseModel
 from loguru import logger
 import asyncio
@@ -66,3 +66,5 @@ class LLMClient:
         
         raise last_exc
 
+async def parse_structured(self, llm: LLMClient, user_prompt: str, schema: Type[T], max_retries: int = 3, system_prompt: str | None = None) -> T:
+    pass
