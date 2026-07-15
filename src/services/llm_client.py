@@ -66,5 +66,5 @@ class LLMClient:
         
         raise last_exc
 
-async def parse_structured(self, llm: LLMClient, user_prompt: str, schema: Type[T], max_retries: int = 3, system_prompt: str | None = None) -> T:
+async def parse_structured(llm: LLMClient, user_prompt: str, schema: Type[T], max_retries: int = 3, system_prompt: str | None = None) -> T:
     pass
