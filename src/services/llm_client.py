@@ -1,9 +1,10 @@
 from src.config import settings
 from openai import AsyncOpenAI, APITimeoutError, RateLimitError
 from typing import TypeVar, Type
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from loguru import logger
 import asyncio
+import json
 
 
 T = TypeVar("T", bound = BaseModel)
@@ -67,4 +68,36 @@ class LLMClient:
         raise last_exc
 
 async def parse_structured(llm: LLMClient, user_prompt: str, schema: Type[T], max_retries: int = 3, system_prompt: str | None = None) -> T:
-    pass
+    schema_json = json.dumps(schema.model_json_schema(), ensure_ascii=False, indent=2)
+    default_system = (
+        f"Respond strictly as JSON conforming to the schema:\n{schema_json}\n"
+        f"No text before or after the JSON."
+    )
+    messages: list[dict] = [
+        {"role": "system", "content": system_prompt or default_system},
+        {"role": "user", "content": user_prompt},    
+    ]
+    last_exc: Exception | None = None 
+    for attempt in range(max_retries):
+        raw = await llm.chat(messages=messages)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as e:
+            last_exc = e 
+            logger.warning("attempt {n}: invalid JSON: {err}", n=attempt + 1, err=e)
+            messages.append({"role": "assistant", "content": raw})
+            messages.append({"role": "user", "content": f"Invalid JSON: {e}. Return a valid object that mathes the schema."})
+            continue
+
+        try:
+            return schema.model_validate(data)
+        except ValidationError as e:
+            last_exc = e 
+            logger.warning("attempt {n}: schema mismatch: {err}", n=attempt+1, err=e)
+            messages.append({"role": "assistant", "content": raw})
+            messages.append({"role": "user", "content": f"JSON does not match the schema: {e}. Fix it."})
+            continue
+
+    if last_exc:
+        raise last_exc
+
