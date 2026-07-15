@@ -8,8 +8,12 @@ class Settings(BaseSettings):
     llm_base_url: str
     llm_api_key: str
     llm_model_primary: str
-    ollama_embed_lln: str
-    embed_llm_provider: str 
+    llm_model_cheap: str
+    embed_model: str
+    embed_dimension: str 
+
+    llm_temperature: float
+    llm_max_tokens: int
 
     request_timeout_s: int = 30
     max_retries: int = 3
