@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     embed_model: str
     embed_dimension: str 
 
-    llm_temperature: float
-    llm_max_tokens: int
+    llm_temperature: float = 0.1
+    llm_max_tokens: int = 500
 
     request_timeout_s: int = 30
     max_retries: int = 3
