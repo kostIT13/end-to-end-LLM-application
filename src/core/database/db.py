@@ -1,0 +1,19 @@
+from src.core.logging_settings import logger 
+from src.core.config import settings
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from typing import AsyncGenerator
+
+engine = create_async_engine(settings.pgvector_url, echo=settings.debug, pool_pre_ping=True)
+async_session_maker = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        try:
+            yield session 
+            await session.commit()
+            logger.debug("The translation is fixed")
+        except Exception as e:
+            await session.rollback 
+            logger.error(f"Translation error {e}", exc_info=True)
+            raise

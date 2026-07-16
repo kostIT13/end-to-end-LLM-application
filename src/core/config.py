@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     log_level: str = "INFO"
+    debug: bool = False
 
     llm_base_url: str
     llm_api_key: str
@@ -11,6 +12,12 @@ class Settings(BaseSettings):
     llm_model_cheap: str
     embed_model: str
     embed_dimension: str 
+
+    pgvector_url: str
+    pgvector_db: str
+    pgvector_host: str
+    pgvector_user: str
+    pgvector_port: int = 5432
 
     llm_temperature: float = 0.1
     llm_max_tokens: int = 500
