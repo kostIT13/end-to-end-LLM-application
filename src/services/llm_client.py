@@ -1,8 +1,8 @@
-from src.config import settings
+from src.core.config import settings
 from openai import AsyncOpenAI, APITimeoutError, RateLimitError
 from typing import TypeVar, Type
 from pydantic import BaseModel, ValidationError
-from loguru import logger
+from src.core.logging_settings import logger
 import asyncio
 import json
 
