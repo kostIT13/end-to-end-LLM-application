@@ -3,26 +3,27 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
-    log_level: str = "INFO"
-    debug: bool = False
+    LOG_LEVEL: str = "INFO"
+    DEBUG: bool = False
 
-    llm_base_url: str
-    llm_api_key: str
-    llm_model_primary: str
-    llm_model_cheap: str
-    embed_model: str
-    embed_dimension: str 
+    LLM_BASE_URL: str
+    LLM_API_KEY: str
+    LLM_MODEL_PRIMARY: str
+    LLM_MODEL_CHEAP: str
+    EMBED_MODEL: str
+    EMBED_DIMENSION: str 
 
-    pgvector_url: str
-    pgvector_db: str
-    pgvector_host: str
-    pgvector_user: str
-    pgvector_port: int = 5432
+    PGVECTOR_URL: str
+    PGVECTOR_DB: str
+    PGVECTOR_HOST: str
+    PGVECTOR_PASSWORD: str
+    PGVECTOR_USER: str
+    PGVECTOR_PORT: int = 5432
 
-    llm_temperature: float = 0.1
-    llm_max_tokens: int = 500
+    LLM_TEMPERATURE: float = 0.1
+    LLM_MAX_TOKENS: int = 500
 
-    request_timeout_s: int = 30
-    max_retries: int = 3
+    REQUES_TIMEOUT_S: int = 30
+    MAX_RETRIES: int = 3
 
 settings = Settings()

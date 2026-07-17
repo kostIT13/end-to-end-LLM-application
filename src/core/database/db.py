@@ -3,7 +3,7 @@ from src.core.config import settings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from typing import AsyncGenerator
 
-engine = create_async_engine(settings.pgvector_url, echo=settings.debug, pool_pre_ping=True)
+engine = create_async_engine(settings.PGVECTOR_URL, echo=settings.DEBUG, pool_pre_ping=True)
 async_session_maker = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 
