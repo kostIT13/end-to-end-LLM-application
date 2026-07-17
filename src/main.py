@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy import text
 from src.core.database.db import engine
 from src.api.endpoints import router as base_router
+from src.core.database.models import DocumentChunks
 
 
 @asynccontextmanager
