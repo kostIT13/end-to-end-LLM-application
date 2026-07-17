@@ -5,7 +5,33 @@ build/
 dist/
 wheels/
 *.egg-info
+.vscode
 
 # Virtual environments
 .venv
+
+secret.txt
+*.go
+temp/
+[cr]at.exe
+
+
+*.pyc
+*.pyo
+*.pyd
+.Python
+
 .env
+.env.test
+*.log
+.DS_Store
+data/*.csv
+alembic/versions/__pycache__/
+
+.chainlit/
+chainlit.md
+.chainlit_cache/
+*.chainlit
+
+uploads
+/uploads
