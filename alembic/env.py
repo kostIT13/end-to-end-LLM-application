@@ -5,6 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from src.core.database.base import Base
+from src.core.database.models import DocumentChunks
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
