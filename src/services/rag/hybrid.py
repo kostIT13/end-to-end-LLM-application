@@ -4,6 +4,7 @@ from loguru import logger
 from src.services.rag.embedder import embed_query
 from src.services.rag.bm25_retrieval import BM25Index
 from src.services.document_chunks.repository import SQLAlchemyDocumentChunksRepository
+from src.services.rag.reranker import rerank_chunks
 
 
 def rrf_fuse(rankings: List[List[str]], k: int = 60) -> List[tuple[str, float]]:
@@ -25,6 +26,7 @@ async def hybrid_search(
     top_k_dense: int = 10,
     top_k_bm25: int = 10,
     top_k_final: int = 5,
+    use_reranker: bool = False
 ) -> List[Dict[str, Any]]:
     query_embedding = embed_query(query)
     
@@ -62,5 +64,13 @@ async def hybrid_search(
     
     logger.debug("Hybrid search: dense={}, bm25={}, final={}",
                  len(dense_results), len(bm25_results), len(top_final))
+    
+    if use_reranker and len(top_final) > 1:
+        logger.debug("Applying reranker to {} chunks", len(top_final))
+        top_final = await rerank_chunks(
+            query=query,
+            chunks=top_final,
+            top_k=top_k_final,
+        )
     
     return top_final

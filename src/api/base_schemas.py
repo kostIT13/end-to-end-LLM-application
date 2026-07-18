@@ -9,3 +9,11 @@ class AskRequest(BaseModel):
     top_k: Optional[int] = Field(5, ge=1, le=20)
     use_hybrid_search: bool = True
     skip_security_check: bool = False
+    use_reranker: Optional[bool] = Field(
+        False,
+        description="Использовать reranker для улучшения результатов"
+    )
+    stream: Optional[bool] = Field(
+        False,
+        description="Использовать стриминг ответа"
+    )

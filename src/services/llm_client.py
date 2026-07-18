@@ -1,13 +1,15 @@
-from src.core.config import settings
-from openai import AsyncOpenAI, APITimeoutError, RateLimitError
-from typing import TypeVar, Type
-from pydantic import BaseModel, ValidationError
-from src.core.logging_settings import logger
 import asyncio
 import json
+from typing import TypeVar, Type, List, Dict, Any, Optional, AsyncGenerator
+
+from openai import AsyncOpenAI, APITimeoutError, RateLimitError
+from pydantic import BaseModel, ValidationError
+
+from src.core.config import settings
+from src.core.logging_settings import logger
 
 
-T = TypeVar("T", bound = BaseModel)
+T = TypeVar("T", bound=BaseModel)
 RETRYABLE = (RateLimitError, APITimeoutError)
 
 
@@ -16,88 +18,212 @@ class LLMClient:
         self.client = AsyncOpenAI(
             api_key=settings.LLM_API_KEY,
             base_url=settings.LLM_BASE_URL,
-            timeout=settings.REQUES_TIMEOUT_S    
+            timeout=settings.REQUEST_TIMEOUT_S,
         )
-    
-    async def _call(self, model: str, messages: list[dict], **kwargs) -> str:
-        kwargs.pop('temperature', None)
-        kwargs.pop('max_tokens', None)
+
+    async def _call(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> str:
+        kwargs.pop("temperature", None)
+        kwargs.pop("max_tokens", None)
 
         response = await self.client.chat.completions.create(
             model=model,
             messages=messages,
-            llm_temperature=settings.LLM_TEMPERATURE, 
-            llm_max_tokens=settings.LLM_MAX_TOKENS,
-            **kwargs
-        ) 
+            temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+            max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+            **kwargs,
+        )
         return response.choices[0].message.content or ""
-        
-    async def _try_with_retries(self, model: str, messages: list[dict], **kwargs) -> tuple[str, Exception | None]:
+
+    async def _call_stream(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> AsyncGenerator[str, None]:
+        kwargs.pop("temperature", None)
+        kwargs.pop("max_tokens", None)
+
+        stream = await self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+            max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+            stream=True,
+            **kwargs,
+        )
+
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    async def _try_with_retries(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> tuple[str, Exception | None]:
         last_exc = None
 
         for attempt in range(settings.MAX_RETRIES):
             try:
-                return await self._call(model=model, messages=messages, **kwargs)
+                return await self._call(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs,
+                ), None
             except RETRYABLE as e:
-                last_exc = e 
-                wait = min(2 ** attempt, 10)
+                last_exc = e
+                wait = min(2**attempt, 10)
                 logger.warning(
-                    "retry {n}/{m} on {exc}, sleep {s}s",
-                    n = attempt + 1, m=settings.MAX_RETRIES, exc=type(e).__name__, s=wait
+                    "Retry {n}/{m} on {exc}, sleep {s}s",
+                    n=attempt + 1,
+                    m=settings.MAX_RETRIES,
+                    exc=type(e).__name__,
+                    s=wait,
                 )
                 await asyncio.sleep(wait)
-        return "", last_exc
-    
-    async def _fallback(self, messages: list[dict], **kwargs) -> str:
-        logger.warning("primary exhausted, falling back to cheap model")
-        try:
-            return await self._call(model=settings.LLM_MODEL_CHEAP, messages=messages, **kwargs)
-        except Exception as e:
-            logger.error("fallback also failed: {exc}", exc=type(e).__name__)
-            raise 
-    
-    async def chat(self, messages: list[dict], model: str | None = None, **kwargs) -> str:
-        target = model or settings.LLM_MODEL_PRIMARY
-        result, last_exc = await self._try_with_retries(target, messages, **kwargs)
-        if last_exc is None:
-            return result 
-        
-        if target != settings.LLM_MODEL_CHEAP:
-            return await self._fallback(messages, **kwargs)
-        
-        raise last_exc
 
-async def parse_structured(llm: LLMClient, user_prompt: str, schema: Type[T], max_retries: int = 3, system_prompt: str | None = None) -> T:
+        return "", last_exc
+
+    async def _fallback(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> str:
+        logger.warning("Primary exhausted, falling back to cheap model: {}", settings.LLM_MODEL_CHEAP)
+        try:
+            return await self._call(
+                model=settings.LLM_MODEL_CHEAP,
+                messages=messages,
+                temperature=temperature if temperature is not None else 0.1,
+                max_tokens=max_tokens,
+                **kwargs,
+            )
+        except Exception as e:
+            logger.error("Fallback also failed: {}", type(e).__name__)
+            raise
+
+    async def chat(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> str:
+        target = model or settings.LLM_MODEL_PRIMARY
+
+        result, error = await self._try_with_retries(
+            model=target,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **kwargs,
+        )
+
+        if error is None:
+            return result
+
+        if target != settings.LLM_MODEL_CHEAP:
+            return await self._fallback(
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs,
+            )
+
+        raise error
+
+    async def chat_stream(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        **kwargs,
+    ) -> AsyncGenerator[str, None]:
+        target = model or settings.LLM_MODEL_PRIMARY
+
+        try:
+            async for token in self._call_stream(
+                model=target,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs,
+            ):
+                yield token
+        except Exception as e:
+            logger.error("Streaming error: {}", e)
+            yield f"\n\nError: {str(e)}"
+
+
+async def parse_structured(
+    llm: LLMClient,
+    user_prompt: str,
+    schema: Type[T],
+    max_retries: int = 3,
+    system_prompt: Optional[str] = None,
+    temperature: float = 0.0,
+) -> T:
     schema_json = json.dumps(schema.model_json_schema(), ensure_ascii=False, indent=2)
     default_system = (
         f"Respond strictly as JSON conforming to the schema:\n{schema_json}\n"
         f"No text before or after the JSON."
     )
-    messages: list[dict] = [
+
+    messages: List[Dict[str, str]] = [
         {"role": "system", "content": system_prompt or default_system},
-        {"role": "user", "content": user_prompt},    
+        {"role": "user", "content": user_prompt},
     ]
-    last_exc: Exception | None = None 
+
+    last_err: Exception | None = None
     for attempt in range(max_retries):
-        raw = await llm.chat(messages=messages)
+        raw = await llm.chat(messages, temperature=temperature)
+
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as e:
-            last_exc = e 
-            logger.warning("attempt {n}: invalid JSON: {err}", n=attempt + 1, err=e)
+            last_err = e
+            logger.warning("Attempt {n}: invalid JSON: {err}", n=attempt + 1, err=e)
             messages.append({"role": "assistant", "content": raw})
-            messages.append({"role": "user", "content": f"Invalid JSON: {e}. Return a valid object that mathes the schema."})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"Invalid JSON: {e}. Return a valid object that matches the schema.",
+                }
+            )
             continue
 
         try:
             return schema.model_validate(data)
         except ValidationError as e:
-            last_exc = e 
-            logger.warning("attempt {n}: schema mismatch: {err}", n=attempt+1, err=e)
+            last_err = e
+            logger.warning("Attempt {n}: schema mismatch: {err}", n=attempt + 1, err=e)
             messages.append({"role": "assistant", "content": raw})
-            messages.append({"role": "user", "content": f"JSON does not match the schema: {e}. Fix it."})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"JSON does not match the schema: {e}. Fix it.",
+                }
+            )
             continue
 
-    if last_exc:
-        raise last_exc
-
+    if last_err:
+        raise last_err
+    raise RuntimeError("Failed to parse structured output")
