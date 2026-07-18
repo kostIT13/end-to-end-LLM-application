@@ -28,7 +28,7 @@ async def hybrid_search(
     top_k_final: int = 5,
     use_reranker: bool = False
 ) -> List[Dict[str, Any]]:
-    query_embedding = embed_query(query)
+    query_embedding = await embed_query(query)
     
     repo = SQLAlchemyDocumentChunksRepository(session)
     dense_results = await repo.search_dense(

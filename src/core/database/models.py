@@ -1,6 +1,7 @@
 from src.core.database.base import Base
+from src.core.config import settings
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, ForeignKey, Text, Index
+from sqlalchemy import String, Text, Index
 import uuid
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.dialects.postgresql import JSONB
@@ -12,7 +13,7 @@ class DocumentChunks(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     doc_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[Vector] = mapped_column(Vector(1536), nullable=False)
+    embedding: Mapped[Vector] = mapped_column(Vector(settings.EMBED_DIMENSION), nullable=False)
     meta: Mapped[dict] = mapped_column(JSONB, nullable=False, default=lambda: {})
 
     __table_args__ = (

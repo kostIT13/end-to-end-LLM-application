@@ -3,11 +3,7 @@ import asyncio
 from pathlib import Path
 from loguru import logger
 from src.core.config import settings
-from src.services.rag.chunker import fixed_chunker
-from src.services.rag.embedder import embed_passages
-from src.services.rag.bm25_retrieval import BM25Index
 from src.core.database.db import get_db
-from src.services.document_chunks.repository import SQLAlchemyDocumentChunksRepository
 from src.services.document_chunks.document_chunks_service import DocumentChunksService
 
 
@@ -17,8 +13,7 @@ async def index_corpus(corpus_dir: Path) -> None:
         return
     
     async for session in get_db():
-        repo = SQLAlchemyDocumentChunksRepository(session)
-        service = DocumentChunksService(repo, session)
+        service = DocumentChunksService(session)
         
         txt_files = sorted(corpus_dir.glob("*.txt"))
         if not txt_files:

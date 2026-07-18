@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     LLM_MODEL_CHEAP: str
     OLLAMA_EMBED_MODEL: str
     OLLAMA_BASE_URL: str
-    EMBED_DIMENSION: str 
+    EMBED_DIMENSION: int = 768
 
     PGVECTOR_URL: str
     PGVECTOR_DB: str
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.1
     LLM_MAX_TOKENS: int = 500
 
-    REQUES_TIMEOUT_S: int = 30
+    REQUEST_TIMEOUT_S: int = 30
     MAX_RETRIES: int = 3
 
 settings = Settings()

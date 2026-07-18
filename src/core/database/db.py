@@ -14,6 +14,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.commit()
             logger.debug("The translation is fixed")
         except Exception as e:
-            await session.rollback 
+            await session.rollback()
             logger.error(f"Translation error {e}", exc_info=True)
             raise

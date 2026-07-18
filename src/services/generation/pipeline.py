@@ -5,7 +5,7 @@ from src.services.generation.prompts import RAG_SYSTEM_PROMPT, build_rag_user_pr
 from src.services.generation.verifier import Citation, verify_citations_from_chunks
 from src.services.llm_client import LLMClient
 from src.services.document_chunks.document_chunks_service import DocumentChunksService
-from src.api.pipeline_schemas import RAGResponse
+from src.api.pipeline_schemas import RAGResponse, CitationModel
 from src.core.config import settings
 
 
@@ -21,7 +21,6 @@ async def answer_question(
         query=query,
         top_k=top_k,
         use_hybrid=use_hybrid,
-        use_reranker=use_reranker,
     )
 
     if not chunks:
@@ -70,15 +69,15 @@ async def answer_question(
     ]
 
     all_valid = True
-    invalid_citations = []
+    invalid_citation_models = []
 
     if citations:
         all_valid, invalid = await verify_citations_from_chunks(
             citations=citations,
             chunks=chunks,
         )
-        invalid_citations = [
-            {"doc_id": c.doc_id, "quote": c.quote}
+        invalid_citation_models = [
+            CitationModel(doc_id=c.doc_id, quote=c.quote)
             for c in invalid
         ]
 
@@ -93,9 +92,9 @@ async def answer_question(
     return RAGResponse(
         answer=answer_text,
         sources=chunks,
-        citations=citations_raw,
+        citations=[CitationModel(doc_id=c.get("doc_id", 0), quote=c.get("quote", "")) for c in citations_raw],
         has_valid_citations=all_valid,
-        invalid_citations=invalid_citations if not all_valid else None,
+        invalid_citations=invalid_citation_models,
         model_used=settings.LLM_MODEL_PRIMARY,
     )
 
@@ -112,7 +111,6 @@ async def answer_question_stream(
         query=query,
         top_k=top_k,
         use_hybrid=use_hybrid,
-        use_reranker=use_reranker,
     )
 
     if not chunks:

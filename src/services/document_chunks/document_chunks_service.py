@@ -11,8 +11,8 @@ from src.core.config import settings
 
 
 class DocumentChunksService:
-    def __init__(self, repository: SQLAlchemyDocumentChunksRepository, session: AsyncSession):
-        self.repository = repository
+    def __init__(self, session: AsyncSession):
+        self.repository = SQLAlchemyDocumentChunksRepository(session)
         self.session = session
         self._bm25: Optional[BM25Index] = None
     
