@@ -122,3 +122,11 @@ class SQLAlchemyDocumentChunksRepository(DocumentChunksRepository):
         stmt = select(func.count()).select_from(DocumentChunks)
         result = await self.session.execute(stmt)
         return result.scalar_one()
+    
+    async def clear_all_chunks(self) -> None:
+        from sqlalchemy import delete
+        
+        stmt = delete(DocumentChunks)
+        await self.session.execute(stmt)
+        await self.session.commit()
+        logger.warning("All chunks deleted")
