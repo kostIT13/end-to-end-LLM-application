@@ -3,6 +3,7 @@ version: "3.9"
 services:
   postgres:
     image: ankane/pgvector:latest
+    container_name: end_to_end_db
     environment:
       POSTGRES_USER: ${PGVECTOR_USER:-rag}
       POSTGRES_PASSWORD: ${PGVECTOR_PASSWORD:-ragpass}
@@ -16,11 +17,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: end_to_end_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=4
+    restart: unless-stopped
+    networks:
+      - app_network
+    command: serve
 
   service:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: end_to_end_service
     env_file:
       - .env
     ports:
@@ -28,11 +47,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_started
     volumes:
       - ./data:/app/data
       - ./src:/app/src
       - ./eval:/app/eval
+      - ./logs:/app/logs
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - app_network
 
 volumes:
   pgdata:
+  ollama_data:
+
+networks:
+  app_network:
+    driver: bridge
