@@ -10,7 +10,8 @@ class Settings(BaseSettings):
     LLM_API_KEY: str
     LLM_MODEL_PRIMARY: str
     LLM_MODEL_CHEAP: str
-    EMBED_MODEL: str
+    OLLAMA_EMBED_MODEL: str
+    OLLAMA_BASE_URL: str
     EMBED_DIMENSION: str 
 
     PGVECTOR_URL: str
