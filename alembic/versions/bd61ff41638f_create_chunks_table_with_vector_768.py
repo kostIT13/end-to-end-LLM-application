@@ -1,8 +1,8 @@
-"""create document chunks table
+"""create chunks table with vector 768
 
-Revision ID: ab05de0e1dd6
-Revises: 44d83abf9da9
-Create Date: 2026-07-17 22:17:15.211068
+Revision ID: bd61ff41638f
+Revises: 
+Create Date: 2026-07-19 13:22:16.649220
 
 """
 from typing import Sequence, Union
@@ -11,10 +11,9 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 import pgvector
-from pgvector.sqlalchemy import VECTOR
 
 # revision identifiers, used by Alembic.
-revision: str = 'ab05de0e1dd6'
+revision: str = 'bd61ff41638f'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,7 +26,7 @@ def upgrade() -> None:
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('doc_id', sa.String(length=36), nullable=False),
     sa.Column('text', sa.Text(), nullable=False),
-    sa.Column('embedding', pgvector.sqlalchemy.vector.VECTOR(dim=1536), nullable=False),
+    sa.Column('embedding', pgvector.sqlalchemy.vector.VECTOR(dim=768), nullable=False),
     sa.Column('meta', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )

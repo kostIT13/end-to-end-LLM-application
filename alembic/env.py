@@ -6,10 +6,18 @@ from sqlalchemy import pool
 from alembic import context
 from src.core.database.base import Base
 from src.core.database.models import DocumentChunks
+from src.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override sqlalchemy.url from settings
+config.set_main_option(
+    "sqlalchemy.url",
+    f"postgresql+psycopg2://{settings.PGVECTOR_USER}:{settings.PGVECTOR_PASSWORD}"
+    f"@{settings.PGVECTOR_HOST}:{settings.PGVECTOR_PORT}/{settings.PGVECTOR_DB}",
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
