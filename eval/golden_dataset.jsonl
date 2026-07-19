@@ -1,0 +1,45 @@
+{"query": "Что такое машинное обучение и какие у него основные типы?", "relevant_doc_ids": ["doc_6", "doc_7", "doc_8"]}
+{"query": "Как работает линейная регрессия?", "relevant_doc_ids": ["doc_6"]}
+{"query": "Объясните логистическую регрессию", "relevant_doc_ids": ["doc_7"]}
+{"query": "Что такое метод опорных векторов (SVM)?", "relevant_doc_ids": ["doc_8"]}
+{"query": "Как работают деревья решений?", "relevant_doc_ids": ["doc_9"]}
+{"query": "Что такое Random Forest?", "relevant_doc_ids": ["doc_10"]}
+{"query": "Объясните Gradient Boosting", "relevant_doc_ids": ["doc_11"]}
+{"query": "Что такое KNN и как он работает?", "relevant_doc_ids": ["doc_12"]}
+{"query": "Что такое K-Means?", "relevant_doc_ids": ["doc_13"]}
+{"query": "Для чего используется PCA?", "relevant_doc_ids": ["doc_14"]}
+{"query": "Что такое Naive Bayes?", "relevant_doc_ids": ["doc_15"]}
+{"query": "Что такое перцептрон?", "relevant_doc_ids": ["doc_16"]}
+{"query": "Какие функции активации используются в нейросетях?", "relevant_doc_ids": ["doc_17"]}
+{"query": "Что такое градиентный спуск?", "relevant_doc_ids": ["doc_18"]}
+{"query": "Для чего нужны Dropout и BatchNorm?", "relevant_doc_ids": ["doc_19"]}
+{"query": "Как работают сверточные нейронные сети (CNN)?", "relevant_doc_ids": ["doc_20"]}
+{"query": "Что такое RNN и LSTM?", "relevant_doc_ids": ["doc_21"]}
+{"query": "Что такое трансформеры?", "relevant_doc_ids": ["doc_22"]}
+{"query": "Что такое BERT?", "relevant_doc_ids": ["doc_23"]}
+{"query": "Что такое GPT?", "relevant_doc_ids": ["doc_24"]}
+{"query": "Что такое RLHF?", "relevant_doc_ids": ["doc_25"]}
+{"query": "Что такое Bag of Words и TF-IDF?", "relevant_doc_ids": ["doc_26"]}
+{"query": "Что такое Word2Vec?", "relevant_doc_ids": ["doc_27"]}
+{"query": "Что такое токенизация в NLP?", "relevant_doc_ids": ["doc_28"]}
+{"query": "Что такое сентимент-анализ?", "relevant_doc_ids": ["doc_29"]}
+{"query": "Что такое NER (распознавание именованных сущностей)?", "relevant_doc_ids": ["doc_30"]}
+{"query": "Как работает машинный перевод?", "relevant_doc_ids": ["doc_31"]}
+{"query": "Что такое суммаризация текста?", "relevant_doc_ids": ["doc_32"]}
+{"query": "Что такое извлечение отношений?", "relevant_doc_ids": ["doc_33"]}
+{"query": "Что такое Question Answering (QA)?", "relevant_doc_ids": ["doc_34"]}
+{"query": "Что такое перплексия в NLP?", "relevant_doc_ids": ["doc_35"]}
+{"query": "Что такое ImageNet?", "relevant_doc_ids": ["doc_36"]}
+{"query": "Как работают YOLO, SSD и Faster R-CNN?", "relevant_doc_ids": ["doc_37"]}
+{"query": "Что такое U-Net и Mask R-CNN?", "relevant_doc_ids": ["doc_38"]}
+{"query": "Что такое GAN (генеративные состязательные сети)?", "relevant_doc_ids": ["doc_39"]}
+{"query": "Что такое Diffusion Models?", "relevant_doc_ids": ["doc_40"]}
+{"query": "Что такое CLIP?", "relevant_doc_ids": ["doc_41"]}
+{"query": "Что такое ViT (Vision Transformer)?", "relevant_doc_ids": ["doc_42"]}
+{"query": "Что такое аугментация данных в CV?", "relevant_doc_ids": ["doc_43"]}
+{"query": "Что такое медицинская диагностика в компьютерном зрении?", "relevant_doc_ids": ["doc_44"]}
+{"query": "Что такое MLOps?", "relevant_doc_ids": ["doc_46"]}
+{"query": "Что такое MLflow?", "relevant_doc_ids": ["doc_47"]}
+{"query": "Что такое DVC?", "relevant_doc_ids": ["doc_48"]}
+{"query": "Что такое CI/CD в ML?", "relevant_doc_ids": ["doc_49"]}
+{"query": "Что такое мониторинг моделей?", "relevant_doc_ids": ["doc_50"]}
