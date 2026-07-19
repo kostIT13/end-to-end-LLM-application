@@ -4,12 +4,15 @@ from typing import Optional
 
 class CitationModel(BaseModel):
     doc_id: int
-    quote: str = Field(..., min_length=1)
+    quote: str = Field(..., min_length=1, description="Дословная цитата из документа")
 
 
 class RAGAnswer(BaseModel):
-    answer: str
-    citations: list[CitationModel] = Field(default_factory=list)
+    answer: str = Field(..., description="Текст ответа на русском языке")
+    citations: list[CitationModel] = Field(
+        default_factory=list,
+        description="Список цитат из документов, на которые опирается ответ",
+    )
 
 
 class RAGResponse(BaseModel):
