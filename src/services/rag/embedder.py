@@ -54,7 +54,6 @@ async def embed_query(text: str) -> List[float]:
 
 
 async def embed_passages(texts: List[str]) -> np.ndarray:
-    """Создает эмбеддинги для документов. Возвращает np.ndarray."""
     if not texts:
         return np.zeros((0, settings.EMBED_DIMENSION), dtype=np.float32)
     
