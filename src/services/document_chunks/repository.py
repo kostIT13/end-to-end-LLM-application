@@ -15,6 +15,8 @@ class SQLAlchemyDocumentChunksRepository(DocumentChunksRepository):
         query_embedding: List[float],
         k: int = 5
     ) -> List[Dict[str, Any]]:
+        embedding_str = "[" + ",".join(str(v) for v in query_embedding) + "]"
+        
         stmt = text("""
             SELECT id, doc_id, text, meta,
                    1 - (embedding <=> :query_embedding) AS score
@@ -26,7 +28,7 @@ class SQLAlchemyDocumentChunksRepository(DocumentChunksRepository):
         result = await self.session.execute(
             stmt,
             {
-                "query_embedding": query_embedding,
+                "query_embedding": embedding_str,
                 "limit": k
             }
         )
@@ -102,7 +104,7 @@ class SQLAlchemyDocumentChunksRepository(DocumentChunksRepository):
         }
 
     async def delete_chunk(self, chunk_id: str) -> bool:
-        from sqlalchemy import select, delete
+        from sqlalchemy import select
         
         stmt = select(DocumentChunks).where(DocumentChunks.id == chunk_id)
         result = await self.session.execute(stmt)

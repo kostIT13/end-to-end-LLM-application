@@ -32,7 +32,7 @@ async def hybrid_search(
     
     repo = SQLAlchemyDocumentChunksRepository(session)
     dense_results = await repo.search_dense(
-        query_embedding.tolist(),
+        query_embedding,
         k=top_k_dense
     )
     

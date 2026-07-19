@@ -180,21 +180,27 @@ async def parse_structured(
     max_retries: int = 3,
     system_prompt: Optional[str] = None,
     temperature: float = 0.0,
+    max_tokens: Optional[int] = None,
 ) -> T:
     schema_json = json.dumps(schema.model_json_schema(), ensure_ascii=False, indent=2)
-    default_system = (
+    schema_instruction = (
+        f"\n\nRespond strictly as JSON conforming to this schema:\n{schema_json}\n"
+        f"No text before or after the JSON."
+    )
+
+    system_content = system_prompt + schema_instruction if system_prompt else (
         f"Respond strictly as JSON conforming to the schema:\n{schema_json}\n"
         f"No text before or after the JSON."
     )
 
     messages: List[Dict[str, str]] = [
-        {"role": "system", "content": system_prompt or default_system},
+        {"role": "system", "content": system_content},
         {"role": "user", "content": user_prompt},
     ]
 
     last_err: Exception | None = None
     for attempt in range(max_retries):
-        raw = await llm.chat(messages, temperature=temperature)
+        raw = await llm.chat(messages, temperature=temperature, max_tokens=max_tokens)
 
         try:
             data = json.loads(raw)

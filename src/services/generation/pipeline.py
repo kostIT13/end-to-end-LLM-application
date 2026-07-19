@@ -3,9 +3,9 @@ from typing import List, Dict, Any, Optional, AsyncGenerator
 from src.core.logging_settings import logger
 from src.services.generation.prompts import RAG_SYSTEM_PROMPT, build_rag_user_prompt
 from src.services.generation.verifier import Citation, verify_citations_from_chunks
-from src.services.llm_client import LLMClient
+from src.services.llm_client import LLMClient, parse_structured
 from src.services.document_chunks.document_chunks_service import DocumentChunksService
-from src.api.pipeline_schemas import RAGResponse, CitationModel
+from src.api.pipeline_schemas import RAGResponse, CitationModel, RAGAnswer
 from src.core.config import settings
 
 
@@ -37,31 +37,44 @@ async def answer_question(
 
     user_prompt = build_rag_user_prompt(query, chunks)
 
-    messages = [
-        {"role": "system", "content": RAG_SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt},
-    ]
-
     try:
-        raw_answer = await llm_client.chat(
-            messages=messages,
+        llm_answer: RAGAnswer = await parse_structured(
+            llm=llm_client,
+            user_prompt=user_prompt,
+            schema=RAGAnswer,
+            system_prompt=RAG_SYSTEM_PROMPT,
             temperature=0.1,
+            max_retries=3,
+            max_tokens=settings.LLM_MAX_TOKENS * 2,  
         )
 
-        parsed = json.loads(raw_answer)
-        answer_text = parsed.get("answer", raw_answer)
-        citations_raw = parsed.get("citations", [])
+        answer_text = llm_answer.answer
+        citations_raw = [
+            {"doc_id": c.doc_id, "quote": c.quote}
+            for c in llm_answer.citations
+        ]
 
-    except json.JSONDecodeError as e:
-        logger.error("Failed to parse LLM response as JSON: {}", e)
-        return RAGResponse(
-            answer=raw_answer,
-            sources=chunks,
-            citations=[],
-            has_valid_citations=True,
-            model_used=settings.LLM_MODEL_PRIMARY,
-        )
-    
+    except Exception as e:
+        logger.error("Structured output failed after retries: {}", e)
+        try:
+            messages = [
+                {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ]
+            raw_answer = await llm_client.chat(messages, temperature=0.1)
+            parsed = json.loads(raw_answer)
+            answer_text = parsed.get("answer", raw_answer)
+            citations_raw = parsed.get("citations", [])
+            logger.info("Fallback to raw JSON parse succeeded")
+        except Exception:
+            return RAGResponse(
+                answer="Произошла ошибка при генерации ответа.",
+                sources=chunks,
+                citations=[],
+                has_valid_citations=True,
+                model_used=settings.LLM_MODEL_PRIMARY,
+            )
+
     citations = [
         Citation(doc_id=c["doc_id"], quote=c["quote"])
         for c in citations_raw

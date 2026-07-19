@@ -27,4 +27,6 @@ class Settings(BaseSettings):
     REQUEST_TIMEOUT_S: int = 30
     MAX_RETRIES: int = 3
 
+    corpus_dir: str = "data/corpus"
+
 settings = Settings()

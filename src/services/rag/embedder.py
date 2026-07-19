@@ -44,16 +44,17 @@ async def embed_texts(texts: List[str], prefix: str = "") -> np.ndarray:
     return np.asarray(responses, dtype=np.float32)
 
 
-async def embed_query(text: str) -> np.ndarray:
+async def embed_query(text: str) -> List[float]:
     text = text.strip()
     if not text:
         raise ValueError("Empty query text")
     
     embeddings = await embed_texts([text], prefix="query")
-    return embeddings[0]
+    return embeddings[0].tolist() 
 
 
 async def embed_passages(texts: List[str]) -> np.ndarray:
+    """Создает эмбеддинги для документов. Возвращает np.ndarray."""
     if not texts:
         return np.zeros((0, settings.EMBED_DIMENSION), dtype=np.float32)
     
