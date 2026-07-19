@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: ankane/pgvector:latest
@@ -54,7 +52,22 @@ services:
       - ./src:/app/src
       - ./eval:/app/eval
       - ./logs:/app/logs
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+      - ./tests:/app/tests
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - app_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: end_to_end_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - service
     networks:
       - app_network
 
